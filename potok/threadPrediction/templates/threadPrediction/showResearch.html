@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header div span {
+            font-size: 18px;
+        }
+
+        header div a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            margin-left: 20px;
+        }
+
+        header div a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section {
+            flex: 1;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section:last-child {
+            border-right: none;
+        }
+
+        .images-section, .masks-section {
+            position: relative;
+        }
+
+        .images-section img, .masks-section img {
+            max-width: 100%;
+            max-height: 90%;
+            display: none;
+        }
+
+        .images-section img.active, .masks-section img.active {
+            display: block;
+        }
+
+        .navigation-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .navigation-button.left {
+            left: 10px;
+        }
+
+        .navigation-button.right {
+            right: 10px;
+        }
+
+        .no-mask-message {
+            font-size: 18px;
+            color: #f44336;
+            text-align: center;
+        }
+
+        .text-area-section textarea {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .save-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .cancel-button {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <span>Logged in as: {{ user }}</span>
+            <a href="{% url 'users:logout' %}">Logout</a>
+        </div>
+    </header>
+    <main>
+        <div class="section images-section">
+            <button class="navigation-button left" onclick="previousImage()">‹</button>
+            {% for headMRI in headMRIs %}
+                <img src="{{ headMRI.Image.url }}" class="{% if forloop.first %}active{% endif %}" id="image-{{ forloop.counter }}">
+            {% endfor %}
+            <button class="navigation-button right" onclick="nextImage()">›</button>
+        </div>
+        <div class="section masks-section">
+            {% for headMRI in headMRIs %}
+                {% if headMRI.Mask %}
+                    <img src="{{ headMRI.Mask.Image.url }}" class="{% if forloop.first %}active{% endif %}" id="mask-{{ forloop.counter }}">
+                {% else %}
+                    <div class="no-mask-message" id="mask-{{ forloop.counter }}" {% if not forloop.first %}style="display: none;"{% endif %}>Проект ещё не прошёл процесс Сегментации при помощи Искусственного Интеллекта</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="section text-area-section">
+            <textarea placeholder="Введите текст здесь..." id="research-text">{{ research.Description }}</textarea>
+        </div>
+    </main>
+    <div class="buttons">
+        {% if role == 'Doctor' %}
+            <button class="save-button" onclick="saveResearch()">Сохранить</button>
+            <button class="cancel-button" onclick="cancelResearch()">Отмена</button>
+        {% else %}
+            <button class="save-button" onclick="acceptVerdictResearch()">Принять результаты исследования</button>
+            <button class="cancel-button" onclick="cancelVerdictResearch()">Опровергнуть результаты исследования</button>
+        {% endif %}
+    </div>
+    <script>
+        let currentIndex = 0;
+        const images = document.querySelectorAll('.images-section img');
+        const masks = document.querySelectorAll('.masks-section img, .masks-section .no-mask-message');
+
+        function acceptVerdictResearch() {
+            var verdict = true;
+            var data = {'verdict': verdict, 'researchPk': {{ research.pk }}, 'role': '{{ role }}'};
+
+            fetch('/threadPrediction/showResearch/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    var url = `/threadPrediction/researchs/`;
+                    window.location.href = url;
+                } else {
+                    throw new Error('Сервер вернул ошибку');
+                }
+            })
+        }
+
+        function cancelVerdictResearch() {
+            var verdict = false;
+            var data = {'verdict': verdict, 'researchPk': {{ research.pk }}, 'role': '{{ role }}'};
+
+            fetch('/threadPrediction/showResearch/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    var url = `/threadPrediction/researchs/`;
+                    window.location.href = url;
+                } else {
+                    throw new Error('Сервер вернул ошибку');
+                }
+            })
+        }
+
+        function showImage(index) {
+            images.forEach((img, i) => {
+                img.classList.toggle('active', i === index);
+            });
+            masks.forEach((mask, i) => {
+                mask.style.display = i === index ? 'block' : 'none';
+            });
+        }
+
+        function previousImage() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            showImage(currentIndex);
+        }
+
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            showImage(currentIndex);
+        }
+
+        function saveResearch() {
+            const text = document.getElementById('research-text').value;
+            if (!text.trim()) {
+                alert('Поле ввода не должно быть пустым.');
+                return;
+            }
+
+            var data = {'text': text, 'researchPk': {{ research.pk }}, 'role': '{{ role }}'};
+
+
+            fetch('/threadPrediction/showResearch/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    var url = `/threadPrediction/researchs/`;
+                    window.location.href = url;
+                } else {
+                    throw new Error('Сервер вернул ошибку');
+                }
+            })
+        }
+
+        function cancelResearch() {
+            var url = `/threadPrediction/researchs`;
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

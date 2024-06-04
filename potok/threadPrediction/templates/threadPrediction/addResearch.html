@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Research</title>
+    <style>
+        .upload-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .upload-container input[type="file"] {
+            display: none;
+        }
+        .upload-container .btn-upload {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .upload-container .btn-upload:hover {
+            background-color: #45a049;
+        }
+        .upload-container .btn-group {
+            margin-top: 20px;
+        }
+        .upload-container .btn-group button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        .upload-container .btn-group button:hover {
+            background-color: #45a049;
+        }
+        .upload-container .btn-group .btn-cancel {
+            background-color: #f44336;
+        }
+        .upload-container .btn-group .btn-cancel:hover {
+            background-color: #e31e10;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h2>Upload Research</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="file" class="btn-upload">Choose Files</label>
+            <input type="file" id="file" name="file" accept=".dcm" multiple>
+            <div class="btn-group">
+                <button type="submit">Create Research</button>
+                <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'threadPrediction:research' %}'">Cancel</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

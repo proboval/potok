@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Researches</title>
+        <style>
+        .upload-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .upload-container input[type="file"] {
+            display: none;
+        }
+        .upload-container .btn-upload {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .upload-container .btn-upload:hover {
+            background-color: #45a049;
+        }
+        .upload-container .btn-group {
+            margin-top: 20px;
+        }
+        .upload-container .btn-group button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        .upload-container .btn-group button:hover {
+            background-color: #45a049;
+        }
+        .upload-container .btn-group .btn-cancel {
+            background-color: #f44336;
+        }
+        .upload-container .btn-group .btn-cancel:hover {
+            background-color: #e31e10;
+        }
+    </style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header div span {
+            font-size: 18px;
+        }
+
+        header div a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            margin-left: 20px;
+        }
+
+        header div a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background: #e8e8e8;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        li:nth-child(odd) {
+            background: #d4d4d4;
+        }
+
+        .add-research {
+            background: #e8e8e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+        }
+
+        .add-research a {
+            text-decoration: none;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .verdict-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .verdict-null {
+            background-color: #ffeb3b;
+            color: #000;
+        }
+
+        .verdict-false {
+            background-color: #f44336;
+        }
+
+        .verdict-true {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <span>Logged in as: {{ user }}</span>
+            <a href="{% url 'users:logout' %}">Logout</a>
+        </div>
+    </header>
+    <main>
+        <h1>{{ user_type }}'s Researches</h1>
+        {% if user_type == 'Doctor' %}
+            <div class="add-research">
+                <a href="{% url 'threadPrediction:upload' %}">Add New Research</a>
+            </div>
+            {% if reserchs.count != 0 %}
+                <ul>
+                    {% for research in reserchs %}
+                        <li onclick="toShowResearch({{ research.pk }})">
+                            {{ research.Name }} - Количество снимков: {{ research.MRIs.count }}
+                            {% if research.Verdict == None %}
+                                <div class="verdict-icon verdict-null">?</div>
+                            {% elif research.Verdict == False %}
+                                <div class="verdict-icon verdict-false">✖</div>
+                            {% elif research.Verdict == True %}
+                                <div class="verdict-icon verdict-true">✔</div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% else %}
+            {% if reserchs.count != 0 %}
+                <ul>
+                    {% for research in reserchs %}
+                        <li onclick="toShowResearch({{ research.pk }})">
+                            {{ research.Name }} - Количество снимков: {{ research.MRIs.count }}
+                            {% if research.Verdict == None %}
+                                <div class="verdict-icon verdict-null">?</div>
+                            {% elif research.Verdict == False %}
+                                <div class="verdict-icon verdict-false">✖</div>
+                            {% elif research.Verdict == True %}
+                                <div class="verdict-icon verdict-true">✔</div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No researches yet.</p>
+            {% endif %}
+        {% endif %}
+    </main>
+</body>
+<script>
+    function toShowResearch(researchPk) {
+        var url = `/threadPrediction/showResearch/?researchId=${researchPk}&role={{ user_type }}`;
+        window.location.href = url;
+    }
+</script>
+</html>
