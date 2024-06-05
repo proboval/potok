@@ -152,21 +152,21 @@
         <div class="section images-section">
             <button class="navigation-button left" onclick="previousImage()">‹</button>
             {% for headMRI in headMRIs %}
-                <img src="{{ headMRI.Image.url }}" class="{% if forloop.first %}active{% endif %}" id="image-{{ forloop.counter }}">
+                <img src="{{ headMRI.Image.url }}" class="{% if forloop.first %}active{% endif %}" id="image-{{ forloop.counter }}" width="460" height="460">
             {% endfor %}
             <button class="navigation-button right" onclick="nextImage()">›</button>
         </div>
         <div class="section masks-section">
             {% for headMRI in headMRIs %}
                 {% if headMRI.Mask %}
-                    <img src="{{ headMRI.Mask.Image.url }}" class="{% if forloop.first %}active{% endif %}" id="mask-{{ forloop.counter }}">
+                    <img src="{{ headMRI.Mask.Image.url }}" class="{% if forloop.first %}active{% endif %}" id="mask-{{ forloop.counter }}" width="460" height="460">
                 {% else %}
                     <div class="no-mask-message" id="mask-{{ forloop.counter }}" {% if not forloop.first %}style="display: none;"{% endif %}>Проект ещё не прошёл процесс Сегментации при помощи Искусственного Интеллекта</div>
                 {% endif %}
             {% endfor %}
         </div>
-        <div class="section text-area-section">
-            <textarea placeholder="Введите текст здесь..." id="research-text">{{ research.Description }}</textarea>
+        <div class="section text-area-section" >
+            <textarea placeholder="Введите текст здесь..." id="research-text">{% if research.Description != '' %} {{ research.Description }} {% else %}{{ description  }}{% endif %}</textarea>
         </div>
     </main>
     <div class="buttons">
@@ -250,6 +250,8 @@
                 alert('Поле ввода не должно быть пустым.');
                 return;
             }
+
+            console.log(text);
 
             var data = {'text': text, 'researchPk': {{ research.pk }}, 'role': '{{ role }}'};
 

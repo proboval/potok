@@ -79,9 +79,9 @@ def showResearch(request):
         researchId = data.get('researchPk')
         research = Research.objects.get(pk=researchId)
 
-        if role == 'Docotr':
+        if role == 'Doctor':
             description = data.get('text')
-
+            print()
             research.Description = description
             research.Verdict = None
             research.save()
@@ -97,6 +97,12 @@ def showResearch(request):
         role = request.GET.get('role')
         research = Research.objects.get(pk=researchPk)
         headMRIs = research.MRIs.all()
-        context = {'research': research, 'headMRIs': headMRIs, 'role': role}
+        description = ('Поступил в диагностику с жалобами на ___.\n' + '\n' +
+                       'При проведении магнитно-резонансной томографии ГМ было выявлено * патологических изменения: ___.\n' + '\n' +
+                        'Данные патологические изменения могут быть проявлением следующих патологических процессов: MP-картина образования в ___, сопровождающегося ___ выраженным перифокальным отёком' +
+                        'органической патологии.\n' + '\n' +
+                        'Морфология образования в ___ характерна для осложнения ___ в виде ___  (на момент исследования в ___ фазе).\n' + '\n' +
+                        'Анамнез: ___.')
+        context = {'research': research, 'headMRIs': headMRIs, 'role': role, 'description': description}
 
         return render(request, 'threadPrediction/showResearch.html', context=context)
